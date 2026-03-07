@@ -18,7 +18,7 @@ func ConnectDB() {
 	ctx , cancel := context.WithTimeout(context.Background(),10*time.Second)
 	defer cancel()
 	err = client.Ping(ctx,nil)
-	If err != nil{
+	If ,err != nil{
 		log.Fatal(err)
 	}
 	log.Println("Connected to MongoDBD!")

@@ -87,7 +87,7 @@ func SignUpUser(c *gin.Context){
 			"user": gin.H{
 			"id" : user.ID,
 			"email" : user.Email
-			},
+			}
 			
 		})
 			
