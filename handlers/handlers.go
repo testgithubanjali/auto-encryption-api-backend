@@ -9,7 +9,7 @@ import(
 	"golang.org/x/crypto/bcrypt"
 )
 func SignUpUser(c *gin.Context){
-	var user models.user
+	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -21,73 +21,71 @@ func SignUpUser(c *gin.Context){
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),14)
      if err !=nil{
-		C.JSON(http.StatusInternalServerError, gin.H{"error":  "Password hashing failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error":  "Password hashing failed"})
 		return
 	 }
-	 user.password = string(hashedPassword)
+	 user.Password = string(hashedPassword)
 
-	 err := services.CreateUser(user)
+	 err = services.CreateUser(user)
 	 if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : "user creation failed"
+			"error": "user creation failed",
 		})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"message" : "user created successfully"
+		"message" : "user created successfully",
 	})
 	 }
-	 func loginUser(c *gin.Context){
+
+func LoginUser(c *gin.Context){
 		var input models.User
-		if err := c.ShouldBindJSON(&input);
-		if err!=nil{
+		if err := c.ShouldBindJSON(&input); err!= nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error" : "invalid input"
+				"error" : "invalid input",
 			})
 			return
 		}
-		user, err := services.GetUserByEmail(input.email)
+		user, err := services.GetUserByEmail(input.Email)
 		if err!=nil{
 		   c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email or password"
+			"error": "Invalid email or password",
 		   })
 		   return
 		}
-		err, bcrypt := CompareHashAndPassword([](user.password),[](input.password))
+		err=bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(input.Password))
 		if err!=nil{
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error" : "Invalid email or password"
+				"error" : "Invalid email or password",
 			})
 			return
 		}
 		token, err := utils.GenerateToken(user.ID.Hex())
 		if err!=nil{
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error" : "Token generation failed"
+				"error" : "Token generation failed",
 			})
 			return
 		}
-		c.JSON(http.StatusOk, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"message": "Login successful",
 			"token" : token,
 		})
 		
 	 }
-	 func UserProfile(c *gin.context){
-		userID := c.mustGet("user_id").(string)
+	 func UserProfile(c *gin.Context){
+		userID := c.MustGet("user_id").(string)
 		c.Set("user_id", userID)
 		user, err := services.GetUserByID(userID)
 		if err!=nil{
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error" : "User not found"
-			})
+			c.JSON(http.StatusUnauthorized, gin.H{"error" : "User not found"})
 			return
 		}
-		c.JSON(http.StatusOk, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"user": gin.H{
 			"id" : user.ID,
-			"email" : user.Email
-			}
+			"email" : user.Email,
+			},
 			
 		})
 			
