@@ -1,6 +1,7 @@
 package database
 
 import (
+	"os"
 	"context"
 	"log"
 	"time"
@@ -10,7 +11,8 @@ import (
 )
 var UserCollection *mongo.Collection
 func ConnectDB() {
-	clientOptions := options.Client().ApplyURI("mongodb://mongodb:27017")
+		mongoURI := os.Getenv("MONGO_URI")
+	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(context.TODO(),clientOptions)
 	if err !=nil{
 		log.Fatal(err)	
@@ -22,6 +24,7 @@ func ConnectDB() {
 		log.Fatal(err)
 	}
 	log.Println("Connected to MongoDBD!")
-	db := client.Database("auto-encryption-api-backend")
+		dbName := os.Getenv("DB_NAME")
+	db := client.Database(dbName)
 	UserCollection = db.Collection("users")
 }

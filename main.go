@@ -1,14 +1,18 @@
 package main
 import(
+	"os"
+
 	"auto-encryption-api-backend/database"
-	"auto-encryption-api-backend/handlers"
-	"auto-encryption-api-backend/middleware"
+	"auto-encryption-api-backend/routers"
+
 	"github.com/gin-contrib/cors"
+	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main(){
+	godotenv.Load()
 	database.ConnectDB()
 	router := gin.Default()
 router.Use(cors.New(cors.Config{
@@ -17,17 +21,14 @@ router.Use(cors.New(cors.Config{
     AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
     AllowCredentials: true,
 }))
+routers.RegisterRoutes(router)
+	port := os.Getenv("PORT")
 
-	router.POST("/signup", handlers.SignUpUser)
-	router.POST("/login", handlers.LoginUser )
-
-	userGroup := router.Group("/users")
-
-	userGroup.Use(middleware.AuthMiddleware())
-	{
-		userGroup.GET("/", handlers.UserProfile)
+	if port == "" {
+		port = "8080"
 	}
-	router.Run(":8080")
+
+	router.Run(":" + port)
 
 	
 }
