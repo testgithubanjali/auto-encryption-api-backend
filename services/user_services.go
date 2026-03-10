@@ -26,20 +26,14 @@ func GetUserByEmail(email string) (*models.User, error) {
 
 	return &user, nil
 }
-
-func GetUserByID(id string) (*models.User, error) {
+func GetUserByID(id primitive.ObjectID) (*models.User, error) {
 
 	var user models.User
 
-	// convert string ID → MongoDB ObjectID
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
+	filter := bson.M{"_id": id}
 
-	filter := bson.M{"_id": objectID}
+	err := database.UserCollection.FindOne(context.TODO(), filter).Decode(&user)
 
-	err = database.UserCollection.FindOne(context.TODO(), filter).Decode(&user)
 	if err != nil {
 		return nil, err
 	}

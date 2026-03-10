@@ -1,12 +1,15 @@
 package middleware
 
 import (
-	"auto-encryption-api-backend/utils"
+	"fmt"
 	"net/http"
 	"strings"
 
+	"auto-encryption-api-backend/utils"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -19,7 +22,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Expect format: Bearer TOKEN
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
@@ -30,6 +32,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := parts[1]
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method")
+			}
+
 			return utils.GetJWTSecret(), nil
 		})
 
@@ -46,13 +53,23 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := claims["user_id"].(string)
+		
+		userIDString, ok := claims["user_id"].(string)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID missing"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user id"})
 			c.Abort()
 			return
 		}
 
+		
+		userID, err := primitive.ObjectIDFromHex(userIDString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid MongoDB ID"})
+			c.Abort()
+			return
+		}
+
+		
 		c.Set("user_id", userID)
 
 		c.Next()

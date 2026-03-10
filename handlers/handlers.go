@@ -4,7 +4,7 @@ import(
 	"auto-encryption-api-backend/services"
 	"auto-encryption-api-backend/utils"
 	"net/http"
-
+    "go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -73,20 +73,25 @@ func LoginUser(c *gin.Context){
 		})
 		
 	 }
-	 func UserProfile(c *gin.Context){
-		userID := c.MustGet("user_id").(string)
-		c.Set("user_id", userID)
-		user, err := services.GetUserByID(userID)
-		if err!=nil{
-			c.JSON(http.StatusUnauthorized, gin.H{"error" : "User not found"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"user": gin.H{
-			"id" : user.ID,
-			"email" : user.Email,
-			},
-			
+	
+func UserProfile(c *gin.Context) {
+
+	// Get user_id from middleware
+	userID := c.MustGet("user_id").(primitive.ObjectID)
+
+	// Fetch user from database
+	user, err := services.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "User not found",
 		})
-			
-		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": gin.H{
+			"id":    user.ID.Hex(),
+			"email": user.Email,
+		},
+	})
+}
