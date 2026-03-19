@@ -10,6 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 var UserCollection *mongo.Collection
+var KeyCollection *mongo.Collection
+var EntryCollection *mongo.Collection
+var NoteCollection *mongo.Collection
+
 func ConnectDB() {
 		mongoURI := os.Getenv("MONGO_URI")
 	clientOptions := options.Client().ApplyURI(mongoURI)
@@ -27,4 +31,7 @@ func ConnectDB() {
 		dbName := os.Getenv("DB_NAME")
 	db := client.Database(dbName)
 	UserCollection = db.Collection("users")
+	KeyCollection = db.Collection("keys")
+	EntryCollection = db.Collection("entries")
+	NoteCollection = db.Collection("notes")
 }

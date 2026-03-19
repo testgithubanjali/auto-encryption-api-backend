@@ -15,11 +15,15 @@ func CreateUser(user models.User) error {
 }
 
 func GetUserByEmail(email string) (*models.User, error) {
+
+	filter := bson.M{
+		"email": email,
+	}
+
 	var user models.User
 
-	filter := bson.M{"email": email}
-
 	err := database.UserCollection.FindOne(context.TODO(), filter).Decode(&user)
+
 	if err != nil {
 		return nil, err
 	}
