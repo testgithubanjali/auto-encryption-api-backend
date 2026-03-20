@@ -32,13 +32,8 @@ func RegisterRoutes(router *gin.Engine) {
 		// entries
 		protected.POST("/entries", handlers.SaveEntry)
 
-		// notes
-		protected.POST("/notes", handlers.CreateNote)
-		protected.GET("/notes", handlers.GetNotes)
-		protected.DELETE("/notes/:id", handlers.DeleteNote)
-
 		// file encryption
 		protected.POST("/encrypt-file", handlers.EncryptFileHandler)
 		protected.GET("/decrypt-file/:name", handlers.DecryptFileHandler)
-		}
 	}
+}

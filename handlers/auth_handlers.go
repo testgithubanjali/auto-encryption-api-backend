@@ -4,41 +4,38 @@ import (
 	"auto-encryption-api-backend/models"
 	"auto-encryption-api-backend/services"
 	"auto-encryption-api-backend/utils"
+	"bytes"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
-func SignUpUser(c *gin.Context){
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
-	existingUser, _ := services.GetUserByEmail(user.Email)
-	if existingUser != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error" : "User already exists"})
-		return
-	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),14)
-     if err !=nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error":  "Password hashing failed"})
-		return
-	 }
-	 user.Password = string(hashedPassword)
 
-	 err = services.CreateUser(user)
-	 if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "user creation failed",
-		})
+func SignUpUser(c *gin.Context) {
+
+	body, _ := io.ReadAll(c.Request.Body)
+	fmt.Println("RAW BODY:", string(body)) // 🔥 MOST IMPORTANT
+
+	// restore body
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+	var req models.SignupRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Println("Bind error:", err)
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"message" : "user created successfully",
+
+	fmt.Println("Parsed request:", req)
+
+	c.JSON(200, gin.H{
+		"message": "Signup success (debug)",
 	})
-	 }
+}
 func LoginUser(c *gin.Context) {
 
 	var req models.LoginRequest
@@ -93,7 +90,7 @@ func UserProfile(c *gin.Context) {
 
 	// Get user_id from middleware
 	userID := c.MustGet("user_id")
-    userID2 ,err:=  primitive.ObjectIDFromHex(userID.(string))
+	userID2, err := primitive.ObjectIDFromHex(userID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Invalid user ID",
