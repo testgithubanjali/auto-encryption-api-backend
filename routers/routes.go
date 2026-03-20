@@ -35,5 +35,7 @@ func RegisterRoutes(router *gin.Engine) {
 		// file encryption
 		protected.POST("/encrypt-file", handlers.EncryptFileHandler)
 		protected.GET("/decrypt-file/:name", handlers.DecryptFileHandler)
+		protected.POST("/encode", handlers.EncodeText)
+		protected.POST("/decode", handlers.DecodeText)
 	}
 }
