@@ -12,7 +12,7 @@ import (
 var UserCollection *mongo.Collection
 var KeyCollection *mongo.Collection
 var EntryCollection *mongo.Collection
-var NoteCollection *mongo.Collection
+var EncryptionCollection *mongo.Collection
 
 func ConnectDB() {
 		mongoURI := os.Getenv("MONGO_URI")
@@ -33,5 +33,5 @@ func ConnectDB() {
 	UserCollection = db.Collection("users")
 	KeyCollection = db.Collection("keys")
 	EntryCollection = db.Collection("entries")
-	NoteCollection = db.Collection("notes")
+     EncryptionCollection = db.Collection("encryption")
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 🔐 ENCRYPT
+// 🔐 ENCRYPT REQUEST
 type EncryptRequest struct {
 	Text      string `json:"text"`
 	SecretKey string `json:"secret_key"`
@@ -29,7 +29,7 @@ func EncryptText(c *gin.Context) {
 
 	cipherText, err := services.EncryptUserText(req.Text, req.SecretKey)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -38,7 +38,7 @@ func EncryptText(c *gin.Context) {
 	})
 }
 
-// 🔓 DECRYPT
+// 🔓 DECRYPT REQUEST
 type DecryptRequest struct {
 	Ciphertext string `json:"ciphertext"`
 	SecretKey  string `json:"secret_key"`
@@ -59,11 +59,11 @@ func DecryptText(c *gin.Context) {
 
 	plainText, err := services.DecryptUserText(req.Ciphertext, req.SecretKey)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"text": plainText, // ✅ FIXED (matches frontend)
+		"text": plainText, // ✅ match frontend
 	})
 }

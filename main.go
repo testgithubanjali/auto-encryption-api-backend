@@ -32,7 +32,7 @@ func main() {
 	// CORS configuration
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:3004",
+			"http://localhost:3002",
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "DELETE", "OPTIONS",
