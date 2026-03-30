@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"auto-encryption-api-backend/models"
@@ -10,28 +11,42 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type KeyRequest struct {
-	Algorithm string `json:"algorithm"`
-	KeyValue  string `json:"key_value"`
-}
-func CreateKey(c *gin.Context){
-	var req KeyRequest
-	if err := c.ShouldBindJSON(&req); err != nil{
+func CreateKey(c *gin.Context) {
+	log.Println("key creation started")
+	var req models.Key
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println("CreateKey: getting invalid request", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-	userIDStr := c.MustGet("user_id").(string)
-	userID,_ := primitive.ObjectIDFromHex(userIDStr)
-	key := models.Key{
-		UserID: userID,
-		Algorithm: req.Algorithm,
-		KeyValue: req.KeyValue,
+	log.Printf("CreateKey: request received, algorithm: %s", req.Algorithm)
+	if req.Algorithm == "" || req.KeyValue == "" {
+		log.Printf("CreateKey: algorithm and key value are missing ")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Algorithm and key value are required"})
+		return
+	}
 
-}
-err := services.CreateKey(key)
-if err != nil {
-	c.JSON(http.StatusInternalServerError, gin.H{"error": "key creation failed"})
-	return
-}
-c.JSON(http.StatusOK, gin.H{"message": "Key created"})
+	userIDStr := c.MustGet("user_id").(string)
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	log.Printf("CreateKey: Processing for userID: %s", userIDStr)
+	if err != nil {
+		log.Println("CreateKey: getting invalid userID", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	key := models.Key{
+		UserID:    userID,
+		Algorithm: req.Algorithm,
+		KeyValue:  req.KeyValue,
+	}
+	log.Println("CreateKey: saving key to database")
+	err = services.CreateKey(key)
+	if err != nil {
+		log.Println("CreateKey: Key creation failed", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "key creation failed"})
+		return
+	}
+	log.Println("CreateKey: Key creation Successfull")
+	c.JSON(http.StatusOK, gin.H{"message": "Key created"})
 }

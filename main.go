@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"auto-encryption-api-backend/database"
@@ -13,13 +14,20 @@ import (
 
 func main() {
 
-	// Load .env file
-	godotenv.Load()
+	log.Println("Start main server")
+	log.Println("Loading environment variables")
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: .env file not found, using system environment")
+	} else {
+		log.Println(".env file loaded successfully")
+	}
+	log.Println("JWT_SECRET:", os.Getenv("JWT_SECRET"))
 
-	// Connect MongoDB
 	database.ConnectDB()
+	log.Println("Mongodb connected successfully")
 
-	// Create router (without default redirect behavior)
+	log.Println("Initializing gin router")
 	router := gin.New()
 
 	router.Use(gin.Logger())
@@ -29,10 +37,11 @@ func main() {
 	router.RedirectTrailingSlash = false
 	router.RedirectFixedPath = false
 
-	// CORS configuration
+	log.Println("Router configuration completed")
+	log.Println("Setting up cors")
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:3002",
+			"http://localhost:3001",
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "DELETE", "OPTIONS",
@@ -41,6 +50,7 @@ func main() {
 			"Origin",
 			"Content-Type",
 			"Authorization",
+			"X-Session-ID",
 		},
 		AllowCredentials: true,
 	}))
@@ -49,17 +59,23 @@ func main() {
 	router.OPTIONS("/*path", func(c *gin.Context) {
 		c.Status(200)
 	})
-
+	log.Println("cors setup completed")
+	log.Println("Registering routes")
 	// Register all routes
 	routers.RegisterRoutes(router)
+	log.Println("Routes registered successfully")
 
 	// Read port from env
 	port := os.Getenv("PORT")
 
 	if port == "" {
 		port = "8080"
+		log.Println("PORT not found in env, using default: 8080")
+	} else {
+		log.Printf("Using PORT from env: %s", port)
 	}
-
-	// Start server
-	router.Run(":" + port)
+	err = router.Run("0.0.0.0:" + port)
+	if err != nil {
+		log.Fatal("Server failed to start:", err)
+	}
 }

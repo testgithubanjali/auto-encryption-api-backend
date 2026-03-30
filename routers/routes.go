@@ -13,6 +13,7 @@ func RegisterRoutes(router *gin.Engine) {
 	router.POST("/signup", handlers.SignUpUser)
 	router.POST("/login", handlers.LoginUser)
 	router.POST("/refresh", handlers.RefreshToken)
+	router.POST("/logout", handlers.Logout)
 
 	// PROTECTED ROUTES
 	protected := router.Group("/")
@@ -32,9 +33,8 @@ func RegisterRoutes(router *gin.Engine) {
 		// entries
 		protected.POST("/entries", handlers.SaveEntry)
 
-		// file encryption
 		protected.POST("/encrypt-file", handlers.EncryptFileHandler)
-		protected.GET("/decrypt-file/:name", handlers.DecryptFileHandler)
+		protected.POST("/decrypt-file", handlers.DecryptFileHandler)
 		protected.POST("/encode", handlers.EncodeText)
 		protected.POST("/decode", handlers.DecodeText)
 	}
