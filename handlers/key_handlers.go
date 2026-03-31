@@ -6,6 +6,7 @@ import (
 
 	"auto-encryption-api-backend/models"
 	"auto-encryption-api-backend/services"
+	"auto-encryption-api-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,11 +35,12 @@ func CreateKey(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
 		return
 	}
-
+	hashedKey := utils.HashData([]byte(req.KeyValue))
+	log.Println("CreateKey: Key hashed using SHA-256")
 	key := models.Key{
 		UserID:    userID,
 		Algorithm: req.Algorithm,
-		KeyValue:  req.KeyValue,
+		KeyValue:  hashedKey,
 	}
 	log.Println("CreateKey: saving key to database")
 	err = services.CreateKey(key)

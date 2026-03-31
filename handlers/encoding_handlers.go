@@ -8,6 +8,7 @@ import (
 
 	"auto-encryption-api-backend/models"
 	"auto-encryption-api-backend/services"
+	"auto-encryption-api-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -29,11 +30,17 @@ func EncodeText(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Text required"})
 		return
 	}
-	log.Println("EncodeText: Encoded text")
+
+	// 🔐 SHA-256 hash of original text
+	textHash := utils.HashData([]byte(req.Text))
+	log.Println("EncodeText: Text SHA-256:", textHash)
+
+	log.Println("EncodeText: Encoding text")
 	encoded := base64.StdEncoding.EncodeToString([]byte(req.Text))
 
 	userIDStr := c.MustGet("user_id").(string)
 	log.Printf("EncodeText: processing requiring for userID: %s", userIDStr)
+
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
 		log.Println("EncodeText: invalid user id ")
@@ -48,6 +55,7 @@ func EncodeText(c *gin.Context) {
 		ProcessedText: encoded,
 		CreatedAt:     time.Now(),
 	}
+
 	log.Println("EncodeText: saving entry to database")
 	err = services.SaveEntry(entry)
 	if err != nil {
@@ -55,15 +63,17 @@ func EncodeText(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save entry"})
 		return
 	}
+
 	log.Println("EncodeText: Encoded text successfully")
 
 	c.JSON(http.StatusOK, gin.H{
 		"encoded": encoded,
+		"hash":    textHash, // 🔐 send hash
 	})
 }
-
 func DecodeText(c *gin.Context) {
 	log.Println("DecodeText API called")
+
 	var req models.DecodeRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -73,11 +83,13 @@ func DecodeText(c *gin.Context) {
 	}
 
 	if req.Encoded == "" {
-		log.Println("EncodeText: encode text field is empty")
+		log.Println("DecodeText: encode text field is empty")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Encoded text required"})
 		return
 	}
+
 	log.Println("DecodeText: Decoding text")
+
 	decodedBytes, err := base64.StdEncoding.DecodeString(req.Encoded)
 	if err != nil {
 		log.Println("DecodeText: Decoding failed", err)
@@ -87,9 +99,22 @@ func DecodeText(c *gin.Context) {
 
 	decoded := string(decodedBytes)
 
+	// 🔐 Hash decoded text
+	decryptedHash := utils.HashData([]byte(decoded))
+
+	// 🔍 Compare with frontend hash
+	if req.Hash != "" && req.Hash != decryptedHash {
+		log.Println("DecodeText: Integrity check failed")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Data integrity compromised",
+		})
+		return
+	}
+
 	// 👤 Get user
 	userIDStr := c.MustGet("user_id").(string)
 	log.Printf("DecodeText: Processing for userID: %s", userIDStr)
+
 	userID, err := primitive.ObjectIDFromHex(userIDStr)
 	if err != nil {
 		log.Println("DecodeText: getting invalid user ID", err)
@@ -104,6 +129,7 @@ func DecodeText(c *gin.Context) {
 		ProcessedText: decoded,
 		CreatedAt:     time.Now(),
 	}
+
 	log.Printf("DecodeText: Saving decoding to database")
 	err = services.SaveEntry(entry)
 	if err != nil {
@@ -111,7 +137,9 @@ func DecodeText(c *gin.Context) {
 	} else {
 		log.Printf("DecodeText: Successfully saved decoding entry for user %s", userIDStr)
 	}
-	log.Println(" DecodeText: Decoding successfull")
+
+	log.Println("DecodeText: Decoding successful")
+
 	c.JSON(http.StatusOK, gin.H{
 		"text": decoded,
 	})
