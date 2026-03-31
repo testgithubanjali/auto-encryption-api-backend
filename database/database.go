@@ -14,7 +14,7 @@ import (
 var UserCollection *mongo.Collection
 var KeyCollection *mongo.Collection
 var EntryCollection *mongo.Collection
-var RefreshTokenCollection *mongo.Collection
+
 var SessionCollection *mongo.Collection
 
 func ConnectDB() {
@@ -50,13 +50,11 @@ func ConnectDB() {
 	UserCollection = db.Collection("users")
 	KeyCollection = db.Collection("keys")
 	EntryCollection = db.Collection("entries")
-	RefreshTokenCollection = db.Collection("refresh_tokens")
 	SessionCollection = db.Collection("sessions")
 	log.Println("ConnectDB: Collections initialized:")
 	log.Println(" - users")
 	log.Println(" - keys")
 	log.Println(" - entries")
-	log.Println(" - refresh_tokens")
 
 	log.Println("ConnectDB: Database setup completed successfully ")
 }

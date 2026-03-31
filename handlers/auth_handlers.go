@@ -121,7 +121,10 @@ func LoginUser(c *gin.Context) {
 	}
 	log.Println("creating sessions")
 	sessionID := uuid.New().String()
-	err = services.CreateSession(user.ID.Hex(), sessionID, refreshToken)
+	// 🔐 Hash refresh token before storing
+	hashedRefreshToken := utils.HashToken(refreshToken)
+
+	err = services.CreateSession(user.ID.Hex(), sessionID, hashedRefreshToken)
 	if err != nil {
 		log.Println("Session creation failed", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

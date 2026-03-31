@@ -32,7 +32,8 @@ func EncryptFileHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File read failed"})
 		return
 	}
-
+	fileHash := utils.HashData(data[:n])
+	log.Println("EncryptFile: File SHA-256:", fileHash)
 	key := []byte(os.Getenv("ENCRYPTION_KEY"))
 	if len(key) == 0 {
 		log.Println("EncryptFile: server encryption key is missing")
@@ -51,6 +52,8 @@ func EncryptFileHandler(c *gin.Context) {
 	filename := header.Filename + ".enc"
 
 	log.Println("EncryptFile: Sending encrypted file for download")
+
+	c.Header("X-File-Hash", fileHash)
 
 	c.Header("Content-Description", "File Transfer")
 	c.Header("Content-Disposition", "attachment; filename="+filename)
@@ -90,6 +93,16 @@ func DecryptFileHandler(c *gin.Context) {
 	if err != nil {
 		log.Println("DecryptFile: decryption failed", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failed"})
+		return
+	}
+	decryptedHash := utils.HashData(decryptedData)
+	originalHash := c.GetHeader("X-File-Hash")
+
+	if originalHash != "" && originalHash != decryptedHash {
+		log.Println("DecryptFile: File integrity check failed")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "File integrity compromised",
+		})
 		return
 	}
 
