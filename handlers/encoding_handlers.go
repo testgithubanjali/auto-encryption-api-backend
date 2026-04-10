@@ -31,7 +31,6 @@ func EncodeText(c *gin.Context) {
 		return
 	}
 
-	// 🔐 SHA-256 hash of original text
 	textHash := utils.HashData([]byte(req.Text))
 	log.Println("EncodeText: Text SHA-256:", textHash)
 
@@ -99,7 +98,6 @@ func DecodeText(c *gin.Context) {
 
 	decoded := string(decodedBytes)
 
-	// 🔐 Hash decoded text
 	decryptedHash := utils.HashData([]byte(decoded))
 
 	// 🔍 Compare with frontend hash
@@ -111,7 +109,6 @@ func DecodeText(c *gin.Context) {
 		return
 	}
 
-	// 👤 Get user
 	userIDStr := c.MustGet("user_id").(string)
 	log.Printf("DecodeText: Processing for userID: %s", userIDStr)
 

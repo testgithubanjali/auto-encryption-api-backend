@@ -13,8 +13,8 @@ type SignupRequest struct {
 	Password string `json:"password"`
 }
 
-
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	SessionID string
 }

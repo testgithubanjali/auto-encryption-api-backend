@@ -121,7 +121,7 @@ func LoginUser(c *gin.Context) {
 	}
 	log.Println("creating sessions")
 	sessionID := uuid.New().String()
-	// 🔐 Hash refresh token before storing
+
 	hashedRefreshToken := utils.HashToken(refreshToken)
 
 	err = services.CreateSession(user.ID.Hex(), sessionID, hashedRefreshToken)

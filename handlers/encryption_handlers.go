@@ -32,10 +32,8 @@ func EncryptText(c *gin.Context) {
 		return
 	}
 
-	// 🔐 Convert user key → strong key using SHA-256
 	hashedKey := utils.HashData([]byte(req.SecretKey))
 
-	// 🔐 Hash original text (for integrity)
 	textHash := utils.HashData([]byte(req.Text))
 	log.Println("EncryptText: Text SHA-256:", textHash)
 
@@ -75,7 +73,6 @@ func EncryptText(c *gin.Context) {
 
 	log.Println("EncryptText: Encryption completed")
 
-	// 🔐 Send hash to frontend
 	c.JSON(http.StatusOK, gin.H{
 		"ciphertext": cipherText,
 		"hash":       textHash,

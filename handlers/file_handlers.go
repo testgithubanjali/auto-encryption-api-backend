@@ -106,7 +106,6 @@ func DecryptFileHandler(c *gin.Context) {
 		return
 	}
 
-	// remove .enc from filename
 	filename := header.Filename
 	if len(filename) > 4 && filename[len(filename)-4:] == ".enc" {
 		filename = filename[:len(filename)-4]

@@ -17,7 +17,7 @@ func GetSessionByID(sessionID string) (*models.Session, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := database.SessionCollection.FindOne(ctx, bson.M{
+	err := database.UserCollection.FindOne(ctx, bson.M{
 		"session_id": sessionID,
 	}).Decode(&session)
 
@@ -38,12 +38,12 @@ func CreateSession(userID string, sessionID string, refreshToken string) error {
 		IsExpired:    false,
 	}
 
-	_, err := database.SessionCollection.InsertOne(context.TODO(), session)
+	_, err := database.UserCollection.InsertOne(context.TODO(), session)
 	return err
 }
 func ExpireSession(refreshToken string) error {
 
-	_, err := database.SessionCollection.UpdateOne(
+	_, err := database.UserCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"refresh_token": refreshToken},
 		bson.M{"$set": bson.M{"is_expired": true}},

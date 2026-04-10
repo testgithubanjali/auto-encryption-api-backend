@@ -15,8 +15,6 @@ var UserCollection *mongo.Collection
 var KeyCollection *mongo.Collection
 var EntryCollection *mongo.Collection
 
-var SessionCollection *mongo.Collection
-
 func ConnectDB() {
 	log.Println("ConnectDB: Starting MongoDB connection...")
 	mongoURI := os.Getenv("MONGO_URI")
@@ -50,7 +48,7 @@ func ConnectDB() {
 	UserCollection = db.Collection("users")
 	KeyCollection = db.Collection("keys")
 	EntryCollection = db.Collection("entries")
-	SessionCollection = db.Collection("sessions")
+
 	log.Println("ConnectDB: Collections initialized:")
 	log.Println(" - users")
 	log.Println(" - keys")
