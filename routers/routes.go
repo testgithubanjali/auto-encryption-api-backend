@@ -4,6 +4,7 @@ import (
 	"auto-encryption-api-backend/handlers"
 	"auto-encryption-api-backend/middleware"
 
+	"github.com/didip/tollbooth_gin"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,13 +20,37 @@ func RegisterRoutes(router *gin.Engine) {
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 
+	// ✅ Create limiters (from middleware)
+	encryptLimiter := middleware.EncryptLimiter()
+	decryptLimiter := middleware.DecryptLimiter()
+	encryptFileLimiter := middleware.EncryptFileLimiter()
+	decryptFileLimiter := middleware.DecryptFileLimiter()
+
 	{
 		// user
 		protected.GET("/users", handlers.UserProfile)
 
-		// encryption
-		protected.POST("/encrypt", handlers.EncryptText)
-		protected.POST("/decrypt", handlers.DecryptText)
+		// ✅ encrypt / encode
+		protected.POST("/encrypt",
+			tollbooth_gin.LimitHandler(encryptLimiter),
+			handlers.EncryptText,
+		)
+
+		protected.POST("/encode",
+			tollbooth_gin.LimitHandler(encryptLimiter),
+			handlers.EncodeText,
+		)
+
+		// ✅ decrypt / decode
+		protected.POST("/decrypt",
+			tollbooth_gin.LimitHandler(decryptLimiter),
+			handlers.DecryptText,
+		)
+
+		protected.POST("/decode",
+			tollbooth_gin.LimitHandler(decryptLimiter),
+			handlers.DecodeText,
+		)
 
 		// keys
 		protected.POST("/keys", handlers.CreateKey)
@@ -33,9 +58,15 @@ func RegisterRoutes(router *gin.Engine) {
 		// entries
 		protected.POST("/entries", handlers.SaveEntry)
 
-		protected.POST("/encrypt-file", handlers.EncryptFileHandler)
-		protected.POST("/decrypt-file", handlers.DecryptFileHandler)
-		protected.POST("/encode", handlers.EncodeText)
-		protected.POST("/decode", handlers.DecodeText)
+		// ✅ file encryption
+		protected.POST("/encrypt-file",
+			tollbooth_gin.LimitHandler(encryptFileLimiter),
+			handlers.EncryptFileHandler,
+		)
+
+		protected.POST("/decrypt-file",
+			tollbooth_gin.LimitHandler(decryptFileLimiter),
+			handlers.DecryptFileHandler,
+		)
 	}
 }

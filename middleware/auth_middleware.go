@@ -42,7 +42,6 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		claims := jwt.MapClaims{}
 
-		// 🔹 3. Parse JWT
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
 			log.Println("AuthMiddleware: Validating JWT signing method")
@@ -55,7 +54,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return utils.GetJWTSecret(), nil
 		})
 
-		// 🔥 STRICT VALIDATION
 		if err != nil {
 			log.Println("AuthMiddleware: JWT parse error →", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
@@ -72,7 +70,6 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		log.Println("AuthMiddleware: Token validated successfully")
 
-		// 🔹 4. Check expiration manually
 		exp, ok := claims["exp"].(float64)
 		if !ok {
 			log.Println("AuthMiddleware: exp claim missing")
@@ -88,7 +85,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 🔹 5. Extract user_id
 		userID, ok := claims["user_id"].(string)
 		if !ok {
 			log.Println("AuthMiddleware: user_id missing in token")

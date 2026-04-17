@@ -108,10 +108,8 @@ func DecryptText(c *gin.Context) {
 		return
 	}
 
-	// 🔐 Hash decrypted text
 	decryptedHash := utils.HashData([]byte(plainText))
 
-	// 🔍 Compare with frontend hash (optional)
 	if req.Hash != "" && req.Hash != decryptedHash {
 		log.Println("DecryptText: Integrity check failed")
 		c.JSON(http.StatusBadRequest, gin.H{

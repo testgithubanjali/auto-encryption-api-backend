@@ -67,7 +67,7 @@ func EncodeText(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"encoded": encoded,
-		"hash":    textHash, // 🔐 send hash
+		"hash":    textHash,
 	})
 }
 func DecodeText(c *gin.Context) {
